@@ -35,9 +35,12 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
     ROS_INFO("Publishing: %s", pub_poseimu.getTopic().c_str());
     pub_odomimu = nh.advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
-    ROS_INFO("Publishing: %s", pub_odomimu.getTopic().c_str());
+    ROS_INFO("Publishing: %s", pub_odomimu.getTopic().c_str());    
     pub_pathimu = nh.advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
     ROS_INFO("Publishing: %s", pub_pathimu.getTopic().c_str());
+
+    pub_poseout = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/poseout", 2);
+    ROS_INFO("Publishing: %s", pub_poseout.getTopic().c_str());
 
     // 3D points publishing
     pub_points_msckf = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
@@ -166,6 +169,14 @@ void RosVisualizer::visualize_odometry(double timestamp) {
     odomIinM.pose.pose.position.y = state_plus(5);
     odomIinM.pose.pose.position.z = state_plus(6);
 
+
+
+    geometry_msgs::PoseStamped odomIinMPose;
+    odomIinMPose.header.stamp = odomIinM.header.stamp;
+    odomIinMPose.header.frame_id = "global";
+    odomIinMPose.header.seq = poses_seq_out;
+    odomIinMPose.pose = odomIinM.pose.pose;
+
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
     // TODO: this currently is an approximation since this should actually evolve over our propagation period
     // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
@@ -205,6 +216,9 @@ void RosVisualizer::visualize_odometry(double timestamp) {
     // Finally, publish the resulting odometry message
     pub_odomimu.publish(odomIinM);
 
+    pub_poseout.publish(odomIinMPose);
+    // Move them forward in time
+    poses_seq_out++;
 
 }
 

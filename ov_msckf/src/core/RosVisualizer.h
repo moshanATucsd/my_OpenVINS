@@ -115,6 +115,9 @@ namespace ov_msckf {
         Simulator* _sim;
 
         // Our publishers
+        ros::Publisher pub_poseout;
+        unsigned int poses_seq_out = 0;
+
         ros::Publisher pub_poseimu;
         ros::Publisher pub_odomimu;
         ros::Publisher pub_pathimu;
